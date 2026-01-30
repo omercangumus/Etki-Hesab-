@@ -63,9 +63,15 @@
       animation: grow 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    /* Selection Card Hover */
-    .selection-card:hover {
-      transform: translateY(-2px);
+    /* Smooth Transitions */
+    .fade-enter-active,
+    .fade-leave-active {
+      transition: opacity 0.3s;
+    }
+
+    .fade-enter,
+    .fade-leave-to {
+      opacity: 0;
     }
   </style>
 </head>
@@ -95,338 +101,370 @@
         <div class="flex gap-1.5 items-center mr-0.5 pb-1">
           <div class="w-4 h-4 rounded-full bg-black/10"></div>
           <div class="w-4 h-4 rounded-full bg-black/10"></div>
-          <div class="w-5 h-3 rounded-[4px] border border-black/20 relative ml-0.5">
-            <div class="absolute inset-0.5 bg-black rounded-[2px] w-[70%]"></div>
-          </div>
         </div>
       </div>
 
       <!-- Main Content Area -->
       <div class="flex-1 relative overflow-hidden bg-[#f8f9fa]">
 
-        <!-- HOME / DASHBOARD WRAPPER -->
-        <div x-show="screen === 'home' || screen === 'dashboard'" x-transition:enter="transition ease-out duration-300"
-          class="absolute inset-0 flex flex-col h-full">
+        <!-- HEADER (Shared) -->
+        <div class="bg-white px-5 py-3 flex items-center justify-between z-10 sticky top-0 border-b border-gray-50/50"
+          x-show="screen === 'home' || screen === 'dashboard'">
+          <div class="flex items-center gap-2"
+            @click="if(hasEtkiAccount) screen = screen === 'home' ? 'dashboard' : 'home'">
+            <div
+              class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm transition-colors"
+              :class="screen === 'dashboard' ? 'bg-[#00a651] rotate-180' : 'bg-gray-900'">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none mb-0.5"
+                x-text="screen === 'dashboard' ? 'Mod:' : 'Cüzdan:'"></p>
+              <p class="text-[14px] font-bold text-gray-900 leading-none"
+                x-text="screen === 'dashboard' ? 'Etki Hesabı' : 'Ana Cüzdan'"></p>
+            </div>
+          </div>
+          <div class="relative p-2 rounded-full hover:bg-gray-50 transition-colors">
+            <i data-lucide="bell" class="w-6 h-6 text-gray-700"></i>
+            <div class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+          </div>
+        </div>
 
-          <!-- Header -->
-          <div
-            class="bg-white px-5 py-4 flex items-center justify-between z-10 sticky top-0 border-b border-gray-50/50">
-            <div class="flex items-center gap-2">
-              <!-- Garanti Logo Simple -->
+        <!-- HOME (WALLET) SCREEN -->
+        <div x-show="screen === 'home'" x-transition:enter="transition ease-out duration-300"
+          class="absolute inset-0 top-[60px] flex flex-col h-full overflow-y-auto hide-scrollbar p-5 pb-24">
+
+          <!-- Main Wallet Balance -->
+          <div class="bg-white rounded-[28px] p-6 shadow-sm border border-gray-100 mb-5 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-2">
+              <p class="text-[12px] text-gray-500 font-bold uppercase tracking-wider">Kullanılabilir Bakiye</p>
+              <i data-lucide="wallet" class="w-5 h-5 text-gray-300"></i>
+            </div>
+            <p class="text-[34px] font-bold text-gray-900 tracking-tight flex items-baseline gap-1">
+              <span x-text="formatCurrency(mainBalance)"></span>
+              <span class="text-[18px] font-medium text-gray-400">TL</span>
+            </p>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="grid grid-cols-4 gap-2 mb-6">
+            <div class="flex flex-col items-center gap-2">
               <div
-                class="w-8 h-8 rounded-lg bg-[#00a651] flex items-center justify-center text-white font-bold text-lg">G
+                class="w-14 h-14 bg-white border border-gray-100 rounded-2xl flex items-center justify-center shadow-sm text-[#00a651]">
+                <i data-lucide="send" class="w-6 h-6 ml-0.5"></i>
               </div>
+              <span class="text-[11px] font-medium text-gray-600">Transfer</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div
+                class="w-14 h-14 bg-white border border-gray-100 rounded-2xl flex items-center justify-center shadow-sm text-[#00a651]">
+                <i data-lucide="qr-code" class="w-6 h-6"></i>
+              </div>
+              <span class="text-[11px] font-medium text-gray-600">QR</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div
+                class="w-14 h-14 bg-white border border-gray-100 rounded-2xl flex items-center justify-center shadow-sm text-[#00a651]">
+                <i data-lucide="credit-card" class="w-6 h-6"></i>
+              </div>
+              <span class="text-[11px] font-medium text-gray-600">Kartlar</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div
+                class="w-14 h-14 bg-white border border-gray-100 rounded-2xl flex items-center justify-center shadow-sm text-[#00a651]">
+                <i data-lucide="more-horizontal" class="w-6 h-6"></i>
+              </div>
+              <span class="text-[11px] font-medium text-gray-600">Diğer</span>
+            </div>
+          </div>
+
+          <!-- PROMO / ACCESS CARD -->
+          <div
+            class="bg-[#00a651] rounded-[28px] p-1 text-white relative overflow-hidden group cursor-pointer shadow-lg shadow-green-500/20"
+            @click="hasEtkiAccount ? screen = 'dashboard' : screen = 'intent'">
+            <div
+              class="bg-gradient-to-br from-[#00b058] to-[#008f45] rounded-[24px] p-6 h-full relative z-10 overflow-hidden">
+              <div class="flex justify-between items-start mb-6">
+                <div>
+                  <h3 class="text-[20px] font-bold leading-tight"
+                    x-text="hasEtkiAccount ? 'Etki Hesabın' : 'Etki Hesabı'"></h3>
+                  <p class="text-[13px] opacity-90 mt-1 font-medium"
+                    x-text="hasEtkiAccount ? 'Ağacını büyütmeye devam et.' : 'Hem kazan, hem dünyayı iyileştir.'"></p>
+                </div>
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  <i data-lucide="arrow-right" class="w-5 h-5 text-white"></i>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 mt-4" x-show="!hasEtkiAccount">
+                <span class="bg-white/20 px-3 py-1 rounded-lg text-[11px] font-bold backdrop-blur-sm">%42 Faiz</span>
+                <span class="bg-white/20 px-3 py-1 rounded-lg text-[11px] font-bold backdrop-blur-sm">Sosyal Etki</span>
+              </div>
+
+              <div x-show="hasEtkiAccount" class="flex items-center gap-2 mt-2">
+                <span class="text-[24px] font-bold"><span x-text="formatCurrency(etkiBalance)"></span> TL</span>
+              </div>
+
+              <!-- Decorative -->
+              <div class="absolute -bottom-8 -right-8 opacity-20 rotate-12">
+                <i data-lucide="sprout" class="w-32 h-32"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DASHBOARD (ETKI ACCOUNT) SCREEN -->
+        <div x-show="screen === 'dashboard'" x-transition:enter="transition ease-out duration-300"
+          class="absolute inset-0 top-[60px] flex flex-col h-full overflow-y-auto hide-scrollbar p-5 pb-24">
+
+          <!-- FINANCIAL SUMMARY CARD -->
+          <div class="bg-white rounded-[28px] p-6 shadow-sm border border-gray-100 mb-4 relative overflow-hidden">
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Balance -->
               <div>
-                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Merhaba,</p>
-                <p class="text-[16px] font-bold text-gray-900 leading-none">Demo Kullanıcı</p>
+                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Anapara</p>
+                <p class="text-[22px] font-bold text-gray-900"><span x-text="formatCurrency(etkiBalance)"></span><span
+                    class="text-sm text-gray-400 ml-1">TL</span></p>
+              </div>
+              <!-- Profit -->
+              <div class="text-right">
+                <p
+                  class="text-[11px] text-[#00a651] font-bold uppercase tracking-wider mb-1 flex items-center justify-end gap-1">
+                  <i data-lucide="trending-up" class="w-3 h-3"></i> Getiri</p>
+                <p class="text-[22px] font-bold text-[#00a651]">+<span x-text="earnedInterest.toFixed(2)"></span><span
+                    class="text-sm ml-1 text-green-600/60">TL</span></p>
               </div>
             </div>
-            <div class="relative p-2 rounded-full hover:bg-gray-50 transition-colors cursor-pointer"
-              @click="showNotification('Bildirimin yok')">
-              <i data-lucide="bell" class="w-6 h-6 text-gray-700"></i>
-              <div class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+            <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
+              <span class="text-[11px] font-medium text-gray-400">Günlük Faiz: %42 (Yıllık)</span>
+              <button @click="showAddMoneyModal = true"
+                class="text-[11px] font-bold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors">Para
+                Ekle / Çek</button>
             </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto hide-scrollbar pb-24">
+          <!-- IMPACT VISUALIZER -->
+          <div
+            class="bg-gradient-to-b from-[#00a651] to-[#008f45] rounded-[28px] p-6 text-white text-center mb-6 relative overflow-hidden shadow-lg shadow-green-900/10">
+            <!-- Background Elements -->
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10">
+            </div>
 
-            <div class="px-5 pt-5 space-y-6">
+            <div class="relative z-10">
+              <p class="text-[12px] font-medium opacity-80 uppercase tracking-widest mb-4">Etki Durumu</p>
 
-              <!-- Clean AI Advice -->
-              <div x-show="hasEtkiAccount" x-transition
-                class="bg-white rounded-2xl p-4 border border-indigo-50 shadow-sm flex gap-3 relative overflow-hidden items-start">
+              <!-- The Tree/Impact Visual -->
+              <div
+                class="w-32 h-32 mx-auto bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 mb-4 relative ring-4 ring-white/5">
+                <i data-lucide="sprout" class="w-16 h-16 text-white drop-shadow-md"
+                  :class="treeLevel > 1 ? 'scale-125' : 'scale-100' + ' transition-transform duration-1000'"></i>
+
+                <!-- Floating Badges -->
                 <div
-                  class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0 mt-0.5">
-                  <i data-lucide="sparkles" class="w-4 h-4"></i>
-                </div>
-                <div class="flex-1 z-10">
-                  <p class="text-[13px] text-gray-600 leading-snug"><span class="font-bold text-gray-900">İpucu:</span>
-                    Bu ay 150 TL daha eklersen <span class="font-bold text-[#00a651]">2 Öğrenciye</span> daha kitap
-                    bursu sağlayabilirsin.</p>
-                </div>
+                  class="absolute -right-2 top-0 bg-white text-[#00a651] text-[10px] font-bold px-2 py-1 rounded-full shadow-md"
+                  x-show="etkiPoints > 50">LVL 2</div>
               </div>
 
-              <!-- Dashboard Content -->
-              <div x-show="hasEtkiAccount">
-
-                <!-- MAIN BALANCE CARD (SIMPLIFIED) -->
-                <div
-                  class="bg-gradient-to-br from-[#00a651] to-[#007a3e] rounded-[32px] p-6 text-white text-center relative overflow-hidden shadow-xl shadow-green-900/20">
-                  <div class="relative z-10">
-                    <p class="text-[13px] font-medium opacity-80 mb-1">Etki Hesabı Bakiyesi</p>
-                    <p class="text-[36px] font-bold tracking-tight mb-6"><span
-                        x-text="formatCurrency(etkiBalance)"></span> <span
-                        class="text-[20px] font-medium opacity-70">TL</span></p>
-
-                    <!-- LIVE TREE (CENTERED) -->
-                    <div class="w-24 h-24 mx-auto mb-4 relative drop-shadow-lg">
-                      <svg viewBox="0 0 24 24" fill="none"
-                        class="w-full h-full text-green-100 transition-all duration-1000"
-                        :class="treeLevel > 1 ? 'scale-110' : 'scale-100'">
-                        <path fill="currentColor" d="M12 2L15 8H9L12 2Z" />
-                        <path fill="currentColor" d="M12 6L16 14H8L12 6Z" opacity="0.9" />
-                        <path fill="currentColor" d="M12 12L18 22H6L12 12Z" opacity="0.8" />
-                        <rect x="11" y="20" width="2" height="4" fill="#3E2723" />
-                      </svg>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                      <button @click="showAddMoneyModal = true"
-                        class="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 transition-all">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Para Ekle
-                      </button>
-                      <button @click="screen = 'impactsDetail'"
-                        class="bg-white text-[#00a651] py-3 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 shadow-sm transition-all">
-                        <i data-lucide="list" class="w-4 h-4"></i> Etkileri Gör
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- RECENT IMPACTS FEED (Clean Design) -->
-                <div class="mt-6">
-                  <div class="flex items-center justify-between mb-3 px-1">
-                    <h3 class="font-bold text-gray-900 text-[16px]">Son Etkiler</h3>
-                    <span class="text-[12px] text-gray-400">Canlı Akış</span>
-                  </div>
-
-                  <div class="space-y-3">
-                    <template x-for="impact in recentImpacts">
-                      <div
-                        class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-xl"
-                          :class="impact.bgClass">
-                          <span x-text="impact.icon"></span>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <p class="text-[14px] font-bold text-gray-900 truncate" x-text="impact.name"></p>
-                          <p class="text-[12px] text-gray-500 truncate" x-text="impact.detail"></p>
-                          <div class="mt-1 inline-flex items-center gap-1.5 bg-gray-50 px-2 py-0.5 rounded-md">
-                            <div class="w-1.5 h-1.5 rounded-full"
-                              :class="impact.type === 'student' ? 'bg-blue-500' : 'bg-green-500'"></div>
-                            <span class="text-[11px] font-medium text-gray-600" x-text="impact.action"></span>
-                          </div>
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- Empty State -->
-                    <div x-show="recentImpacts.length === 0" class="text-center py-8 text-gray-400">
-                      <i data-lucide="coffee" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
-                      <p class="text-sm">Henüz bir etki oluşmadı.</p>
-                      <p class="text-xs opacity-70">Para ekledikçe burada göreceksin.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- QUICK STATS ROW -->
-                <div class="grid grid-cols-2 gap-3 mt-4">
-                  <div
-                    class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col items-center text-center">
-                    <span class="text-2xl mb-1">📅</span>
-                    <p class="text-[20px] font-bold text-gray-900" x-text="etkiDays"></p>
-                    <p class="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Gün Etki</p>
-                  </div>
-                  <div
-                    class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col items-center text-center">
-                    <span class="text-2xl mb-1">🌟</span>
-                    <p class="text-[20px] font-bold text-gray-900" x-text="etkiPoints"></p>
-                    <p class="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Puan</p>
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- Default Home Content (No Etki Account) -->
-              <div x-show="!hasEtkiAccount">
-                <!-- Standard Balance -->
-                <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 mb-5 relative overflow-hidden">
-                  <div class="flex justify-between items-start mb-2">
-                    <p class="text-[13px] text-gray-500 font-bold uppercase tracking-wider">TOPLAM VARLIK</p>
-                    <button @click="balanceVisible = !balanceVisible" class="text-gray-400">
-                      <i x-show="balanceVisible" data-lucide="eye" class="w-5 h-5"></i>
-                      <i x-show="!balanceVisible" data-lucide="eye-off" class="w-5 h-5"></i>
-                    </button>
-                  </div>
-                  <p class="text-[36px] font-bold text-gray-900 tracking-tight flex items-baseline gap-1">
-                    <span x-text="balanceVisible ? formatCurrency(mainBalance) : '••••••'"></span>
-                    <span class="text-[18px] font-medium text-gray-400">TL</span>
-                  </p>
-                </div>
-
-                <!-- PROMO BANNER -->
-                <div
-                  class="bg-[#e8f9ed] rounded-[24px] p-6 text-[#006830] relative overflow-hidden group cursor-pointer border border-[#00a651]/20"
-                  @click="screen = 'intent'">
-                  <div class="relative z-10">
-                    <div
-                      class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm text-[#00a651]">
-                      <i data-lucide="sprout" class="w-7 h-7"></i>
-                    </div>
-                    <h3 class="text-[22px] font-bold mb-2">Etki Hesabı Aç</h3>
-                    <p class="text-[14px] opacity-80 leading-relaxed mb-6 font-medium max-w-[240px]">Paran
-                      değerlenirken, seçtiğin alanlarda iyilik hareketine dönüşsün.</p>
-                    <button
-                      class="bg-[#00a651] text-white py-3 px-6 rounded-xl font-bold text-[14px] shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center gap-2">
-                      Hemen Başla <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </button>
-                  </div>
-                  <div
-                    class="absolute right-0 bottom-0 w-32 h-32 bg-gradient-to-tl from-[#00a651]/20 to-transparent rounded-tl-[100px]">
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- INTENT SCREEN (REDESIGNED) -->
-        <div x-show="screen === 'intent'" x-transition:enter="transition ease-out duration-300"
-          x-transition:enter-start="opacity-0 translate-x-32" x-transition:enter-end="opacity-100 translate-x-0"
-          class="absolute inset-0 flex flex-col h-full bg-[#f8f9fa] z-50 overflow-hidden" x-cloak>
-          <div class="px-6 py-6 pt-12 bg-white sticky top-0 z-10 border-b border-gray-100">
-            <h2 class="text-[24px] font-bold text-gray-900 leading-tight mb-2">Neyi desteklemek istersin?</h2>
-            <p class="text-[15px] text-gray-500">Mevduatınla hangi alanda etki yaratmak istediğini seç. Birden fazla
-              seçebilirsin.</p>
-          </div>
-
-          <div class="flex-1 overflow-y-auto p-6 hide-scrollbar bg-gray-50/50">
-            <div class="grid grid-cols-1 gap-4">
-              <template x-for="item in intents">
-                <button @click="toggleIntent(item.id)"
-                  class="selection-card relative bg-white rounded-[24px] p-5 text-left border-2 transition-all duration-200 group overflow-hidden shadow-sm hover:shadow-md"
-                  :class="selectedIntents.includes(item.id) ? 'border-[#00a651] ring-1 ring-[#00a651] bg-[#f0fdf4]' : 'border-transparent'">
-
-                  <div class="flex items-start justify-between mb-3">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-colors"
-                      :class="item.bgClass">
-                      <i :data-lucide="item.icon" class="w-7 h-7"></i>
-                    </div>
-                    <!-- Checkbox visual -->
-                    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
-                      :class="selectedIntents.includes(item.id) ? 'bg-[#00a651] border-[#00a651]' : 'border-gray-200 bg-gray-50'">
-                      <i data-lucide="check" class="w-3.5 h-3.5 text-white"
-                        x-show="selectedIntents.includes(item.id)"></i>
-                    </div>
-                  </div>
-
-                  <h3 class="text-[18px] font-bold text-gray-900 mb-1" x-text="item.title"></h3>
-                  <p class="text-[13px] text-gray-500 leading-relaxed font-medium" x-text="item.desc"></p>
-                </button>
-              </template>
+              <p class="text-[18px] font-bold mb-1">Harika Gidiyorsun!</p>
+              <p class="text-[13px] opacity-80 px-4 leading-relaxed">Mevduatın şu ana kadar <span
+                  class="font-bold bg-white/20 px-1 rounded">2 Öğrenci</span> ve <span
+                  class="font-bold bg-white/20 px-1 rounded">1 Ağaç</span> projesine kaynak sağladı.</p>
             </div>
           </div>
 
-          <div class="p-6 bg-white border-t border-gray-100 shadow-[0_-4px_30px_rgba(0,0,0,0.03)] z-10">
-            <button
-              @click="if(selectedIntents.length > 0) screen = 'openAccount'; else showNotification('Lütfen en az bir alan seçin.')"
-              :class="selectedIntents.length > 0 ? 'bg-[#00a651] shadow-lg shadow-green-500/30 hover:bg-[#008f45] text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
-              class="w-full py-4 rounded-xl font-bold text-[16px] transition-all active:scale-95 flex items-center justify-center gap-2">
-              Devam Et <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            </button>
-            <button @click="screen = 'home'"
-              class="w-full py-3 mt-2 text-gray-500 font-bold text-sm hover:text-gray-900">Vazgeç</button>
-          </div>
-        </div>
-
-        <!-- FULL IMPACTS LIST SCREEN -->
-        <div x-show="screen === 'impactsDetail'" x-transition:enter="transition ease-out duration-300"
-          x-transition:enter-start="opacity-0 translate-x-32" x-transition:enter-end="opacity-100 translate-x-0"
-          class="absolute inset-0 flex flex-col h-full bg-[#f8f9fa] z-40" x-cloak>
-          <div class="bg-white px-5 py-4 flex items-center gap-4 shadow-sm z-10 sticky top-0">
-            <button @click="screen = 'dashboard'"
-              class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-              <i data-lucide="chevron-left" class="w-6 h-6 text-gray-700"></i>
-            </button>
-            <span class="text-[17px] font-bold text-gray-900">Etki Geçmişi</span>
-          </div>
-
-          <div class="flex-1 overflow-y-auto p-5 hide-scrollbar">
+          <!-- LIVE FEED -->
+          <div>
+            <h3 class="font-bold text-gray-900 text-[15px] mb-3 px-1">Canlı Etki Akışı</h3>
             <div class="space-y-3">
               <template x-for="impact in recentImpacts">
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-xl"
+                <div
+                  class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 text-lg shadow-sm"
                     :class="impact.bgClass">
                     <span x-text="impact.icon"></span>
                   </div>
-                  <div class="flex-1">
-                    <p class="font-bold text-gray-900 text-[15px]" x-text="impact.name"></p>
-                    <p class="text-[13px] text-gray-600" x-text="impact.detail"></p>
-                    <span class="text-[10px] text-[#00a651] mt-1 font-bold bg-green-50 inline-block px-2 py-0.5 rounded"
-                      x-text="impact.action"></span>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center mb-0.5">
+                      <p class="text-[13px] font-bold text-gray-900 truncate" x-text="impact.name"></p>
+                      <span class="text-[10px] text-gray-400">Az Önce</span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 truncate" x-text="impact.detail"></p>
                   </div>
                 </div>
               </template>
-
-              <template x-if="recentImpacts.length === 0">
-                <div class="flex flex-col items-center justify-center h-64 text-gray-400">
-                  <i data-lucide="wind" class="w-12 h-12 mb-3 opacity-30"></i>
-                  <p class="font-medium">Henüz bir kayıt yok</p>
-                </div>
-              </template>
+              <div x-show="recentImpacts.length === 0" class="text-center py-6 text-gray-400 text-xs">Henüz etki verisi
+                yok</div>
             </div>
           </div>
         </div>
 
-        <!-- OPEN ACCOUNT MODAL (Simplified) -->
-        <div x-show="screen === 'openAccount'" x-transition:enter="transition ease-out duration-300"
-          class="absolute inset-0 flex flex-col h-full bg-[#f8f9fa] z-50 overflow-hidden" x-cloak>
-          <div class="px-6 py-6 pt-10 bg-white sticky top-0 z-10 border-b border-gray-100 flex items-center gap-3">
-            <button @click="screen = 'intent'" class="bg-gray-50 p-2 rounded-lg hover:bg-gray-100"><i
-                data-lucide="chevron-left" class="w-5 h-5 text-gray-700"></i></button>
-            <h2 class="text-[20px] font-bold text-gray-900">Miktar Belirle</h2>
+        <!-- INTENT SELECTION (NEW DESIGN) -->
+        <div x-show="screen === 'intent'" class="absolute inset-0 bg-[#f8f9fa] z-50 flex flex-col"
+          x-transition:enter="transition ease-out duration-300" x-cloak>
+          <!-- Navbar -->
+          <div class="bg-white px-5 py-4 flex items-center gap-4 border-b border-gray-100 sticky top-0 z-10">
+            <button @click="screen = 'home'"
+              class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700">
+              <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </button>
+            <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden flex-1">
+              <div class="h-full bg-[#00a651] w-1/2"></div>
+            </div>
+            <span class="text-xs font-bold text-gray-400">1/2</span>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-6 hide-scrollbar">
-            <p class="text-sm text-gray-500 mb-4 font-medium">Ne kadar yatırmak istersin?</p>
-            <div class="grid grid-cols-1 gap-3 mb-6">
-              <template x-for="amount in [500, 1000, 2000, 5000]">
-                <button @click="selectedAmount = amount"
-                  class="py-4 px-5 rounded-2xl font-bold text-[16px] flex justify-between items-center transition-all border-2"
-                  :class="selectedAmount === amount ? 'border-[#00a651] bg-[#f0fdf4] text-[#006830]' : 'border-gray-100 bg-white text-gray-600'">
-                  <span><span x-text="formatCurrency(amount)"></span> TL</span>
-                  <div class="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center"
-                    :class="selectedAmount === amount ? 'bg-[#00a651] border-transparent' : ''">
-                    <div class="w-2 h-2 bg-white rounded-full" x-show="selectedAmount === amount"></div>
+          <div class="flex-1 overflow-y-auto p-6">
+            <h2 class="text-[24px] font-bold text-gray-900 mb-2">Hedefini Seç</h2>
+            <p class="text-[14px] text-gray-500 mb-6 leading-relaxed">Paran bankada değerlenirken, hangi alanda iyilik
+              yaratsın?</p>
+
+            <div class="grid grid-cols-1 gap-4">
+              <template x-for="item in intents">
+                <div @click="toggleIntent(item.id)"
+                  class="relative bg-white rounded-[24px] p-1 border-2 transition-all duration-200 cursor-pointer group hover:scale-[1.02]"
+                  :class="selectedIntents.includes(item.id) ? 'border-[#00a651] shadow-lg shadow-green-900/10' : 'border-transparent shadow-sm'">
+                  <div class="bg-gray-50 rounded-[20px] p-5 h-full relative overflow-hidden z-10">
+                    <div class="flex items-center justify-between relative z-10">
+                      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" :class="item.bgClass">
+                        <i :data-lucide="item.icon" class="w-6 h-6"></i>
+                      </div>
+                      <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
+                        :class="selectedIntents.includes(item.id) ? 'bg-[#00a651] border-[#00a651]' : 'border-gray-200 bg-white'">
+                        <i data-lucide="check" class="w-3.5 h-3.5 text-white"
+                          x-show="selectedIntents.includes(item.id)"></i>
+                      </div>
+                    </div>
+                    <h3 class="text-[17px] font-bold text-gray-900 mt-4 mb-1" x-text="item.title"></h3>
+                    <p class="text-[12px] text-gray-500 leading-snug" x-text="item.desc"></p>
                   </div>
-                </button>
+                </div>
               </template>
             </div>
           </div>
 
-          <div class="p-6 bg-white border-t border-gray-100 shadow-lg z-10">
-            <button @click="openAccount()"
-              class="w-full bg-[#00a651] text-white py-4 rounded-xl font-bold text-[16px] shadow-lg shadow-green-500/30 active:scale-95 transition-all hover:bg-[#008f45]">
-              Onayla ve Başla
+          <div class="p-6 bg-white border-t border-gray-100 shadow-xl">
+            <button
+              @click="if(selectedIntents.length > 0) screen = 'openAccount'; else showNotification('Lütfen seçim yapın')"
+              class="w-full py-4 rounded-xl font-bold text-[16px] transition-all flex items-center justify-center gap-2"
+              :class="selectedIntents.length > 0 ? 'bg-[#00a651] text-white shadow-lg  active:scale-95' : 'bg-gray-100 text-gray-400 cursor-not-allowed'">
+              Devam Et
             </button>
           </div>
         </div>
 
-        <!-- Add Money Modal -->
-        <div x-show="showAddMoneyModal" class="absolute inset-0 z-[60] flex items-end justify-center" x-cloak>
-          <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            @click="showAddMoneyModal = false"></div>
-          <div class="bg-white w-full rounded-t-[32px] p-6 relative z-10 animate-in slide-in-from-bottom duration-300">
-            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-            <h3 class="text-[20px] font-bold text-gray-900 mb-6">Hızlı Ekle</h3>
+        <!-- OPEN ACCOUNT SCREEN -->
+        <div x-show="screen === 'openAccount'" class="absolute inset-0 bg-[#f8f9fa] z-50 flex flex-col"
+          x-transition:enter="transition ease-out duration-300" x-cloak>
+          <div class="bg-white px-5 py-4 flex items-center gap-4 border-b border-gray-100 sticky top-0 z-10">
+            <button @click="screen = 'intent'"
+              class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700">
+              <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </button>
+            <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden flex-1">
+              <div class="h-full bg-[#00a651] w-full"></div>
+            </div>
+            <span class="text-xs font-bold text-gray-400">2/2</span>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-6">
+            <h2 class="text-[24px] font-bold text-gray-900 mb-6">Miktar Belirle</h2>
+
+            <div class="bg-white rounded-[24px] p-6 text-center border border-gray-100 shadow-sm mb-6">
+              <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Yatırılacak Tutar</p>
+              <div class="flex items-center justify-center gap-2">
+                <button @click="if(selectedAmount > 100) selectedAmount -= 100"
+                  class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"><i
+                    data-lucide="minus" class="w-4 h-4"></i></button>
+                <span class="text-[32px] font-bold text-gray-900 w-[140px]"
+                  x-text="formatCurrency(selectedAmount)"></span>
+                <button @click="selectedAmount += 100"
+                  class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"><i
+                    data-lucide="plus" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+
             <div class="grid grid-cols-3 gap-3 mb-6">
-              <template x-for="amt in [100, 500, 1000]">
-                <button @click="addMoney(amt)"
-                  class="py-4 rounded-xl bg-gray-50 font-bold hover:bg-[#e8f9ed] hover:text-[#00a651] transition-color active:scale-95 text-gray-700">
+              <template x-for="amt in [1000, 2000, 5000]">
+                <button @click="selectedAmount = amt" class="py-3 rounded-xl border font-bold text-sm transition-all"
+                  :class="selectedAmount === amt ? 'border-[#00a651] bg-green-50 text-[#00a651]' : 'border-gray-100 bg-white text-gray-600'">
                   <span x-text="amt"></span> TL
                 </button>
               </template>
+            </div>
+
+            <div class="bg-blue-50 rounded-xl p-4 flex gap-3 items-start">
+              <i data-lucide="trending-up" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <p class="text-[13px] font-bold text-blue-900">Yüksek Getiri</p>
+                <p class="text-[12px] text-blue-700/80 leading-snug">Bu tutarla günlük ortalama <span
+                    class="font-bold">+<span x-text="((selectedAmount * 0.42) / 365).toFixed(2)"></span> TL</span> faiz
+                  getirisi elde edeceksin.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6 bg-white border-t border-gray-100 shadow-xl">
+            <div class="flex justify-between items-center mb-4 text-sm font-medium text-gray-500">
+              <span>Tahmini Yıllık Getiri:</span>
+              <span class="text-[#00a651] font-bold">+<span x-text="formatCurrency(selectedAmount * 0.42)"></span>
+                TL</span>
+            </div>
+            <button @click="openAccount()"
+              class="w-full bg-[#00a651] text-white py-4 rounded-xl font-bold text-[16px] shadow-lg shadow-green-500/30 active:scale-95 transition-all flex items-center justify-center gap-2">
+              Onayla ve Yatır
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Money Modal (Simplified) -->
+        <div x-show="showAddMoneyModal" class="absolute inset-0 z-[60] flex items-end justify-center" x-cloak>
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            @click="showAddMoneyModal = false"></div>
+          <div class="bg-white w-full rounded-t-[32px] p-6 relative z-10 animate-in slide-in-from-bottom duration-300">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            <h3 class="text-[20px] font-bold text-gray-900 mb-6">Para Yönetimi</h3>
+
+            <div class="space-y-3">
+              <button @click="addMoney(500)"
+                class="w-full py-4 rounded-xl bg-[#00a651] text-white font-bold active:scale-95 shadow-lg shadow-green-500/20">500
+                TL Ekle</button>
+              <button @click="withdrawMoney()"
+                class="w-full py-4 rounded-xl bg-gray-100 text-gray-900 font-bold active:scale-95 hover:bg-gray-200">Hepsini
+                Çek & Kapat</button>
             </div>
           </div>
         </div>
 
       </div>
 
+      <!-- Tab Bar (Fixed Navigation) -->
+      <div
+        class="h-[80px] bg-white border-t border-gray-100 flex items-start justify-around px-2 pt-3 z-40 flex-shrink-0"
+        x-show="screen === 'home' || screen === 'dashboard'">
+        <button @click="screen = 'home'" :class="screen === 'home' ? 'text-gray-900' : 'text-gray-400'"
+          class="flex flex-col items-center gap-1">
+          <i data-lucide="wallet" class="w-6 h-6" :stroke-width="screen === 'home' ? 2.5 : 2"></i>
+          <span class="text-[10px] font-bold">Cüzdan</span>
+        </button>
+
+        <div
+          class="w-12 h-12 bg-[#00a651] rounded-full -mt-8 flex items-center justify-center shadow-lg border-[4px] border-[#f8f9fa] cursor-pointer"
+          @click="hasEtkiAccount ? screen = 'dashboard' : screen = 'intent'">
+          <i data-lucide="sprout" class="w-6 h-6 text-white"></i>
+        </div>
+
+        <button @click="screen = 'dashboard'" :class="screen === 'dashboard' ? 'text-gray-900' : 'text-gray-400'"
+          class="flex flex-col items-center gap-1">
+          <i data-lucide="bar-chart-2" class="w-6 h-6" :stroke-width="screen === 'dashboard' ? 2.5 : 2"></i>
+          <span class="text-[10px] font-bold">Etki</span>
+        </button>
+      </div>
+
       <!-- Toast Notification -->
       <div x-show="showToast" x-transition.duration.300ms
         class="absolute top-12 left-1/2 -translate-x-1/2 z-[100] bg-gray-900 text-white px-5 py-3 rounded-full shadow-xl text-sm font-bold flex items-center gap-3 w-max max-w-[90%]"
         x-cloak>
+        <i data-lucide="check-circle" class="w-4 h-4 text-[#00a651]"></i>
         <span x-text="toastMessage" class="truncate"></span>
       </div>
 
@@ -440,12 +478,11 @@
         selectedIntents: [],
         mainBalance: 12450,
         etkiBalance: 0,
-        balanceVisible: true,
+        earnedInterest: 0,
         selectedAmount: 1000,
         hasEtkiAccount: false,
-        etkiPoints: 0,
-        etkiDays: 0,
         treeLevel: 0,
+        etkiPoints: 0,
         showToast: false,
         toastMessage: '',
         showAddMoneyModal: false,
@@ -456,62 +493,41 @@
         recentImpacts: [],
 
         intents: [
-          { id: 'education', icon: 'graduation-cap', title: 'Eğitime Destek', desc: 'Üniversite öğrencilerine kitap ve burs desteği.', bgClass: 'bg-blue-100 text-blue-600' },
-          { id: 'energy', icon: 'zap', title: 'Yenilenebilir Enerji', desc: 'Rüzgar ve güneş santrali yatırımları.', bgClass: 'bg-yellow-100 text-yellow-600' },
-          { id: 'nature', icon: 'trees', title: 'Doğa Koruma', desc: 'Ağaçlandırma ve doğal yaşamı koruma.', bgClass: 'bg-green-100 text-green-600' }
+          { id: 'education', icon: 'graduation-cap', title: 'Eğitime Destek', desc: 'Öğrenci bursu ve kitap.', bgClass: 'bg-blue-100 text-blue-600' },
+          { id: 'energy', icon: 'zap', title: 'Temiz Enerji', desc: 'Rüzgar santrali yatırımı.', bgClass: 'bg-yellow-100 text-yellow-600' },
+          { id: 'nature', icon: 'trees', title: 'Doğa Koruma', desc: 'Ağaçlandırma çalışmaları.', bgClass: 'bg-green-100 text-green-600' }
         ],
 
         init() {
           lucide.createIcons();
-          // Auto-generate impacts periodically
           setInterval(() => {
-            if (this.hasEtkiAccount) this.generateRandomImpact();
-            if (this.etkiBalance > 0) {
-              this.etkiPoints += 5;
-              this.etkiDays++;
-              if (this.etkiPoints > 50) this.treeLevel = 2;
+            // Interest Calculation (Simulation)
+            if (this.hasEtkiAccount && this.etkiBalance > 0) {
+              // 42% yearly interest / 365 days / 86400 seconds * 3 (interval) * boost for visual
+              let interestTick = (this.etkiBalance * 0.42 / 365 / 24 / 60 / 20);
+              this.earnedInterest += interestTick;
+
+              this.etkiPoints += 1;
+              if (this.etkiPoints > 20) this.treeLevel = 2;
+
+              if (Math.random() > 0.8) this.generateRandomImpact();
             }
-          }, 5000);
+          }, 3000);
         },
 
         generateRandomImpact() {
-          if (Math.random() > 0.6) return; // Not always
-
-          // If user selected Education, prioritize students
-          const userWantsEducation = this.selectedIntents.includes('education');
-
-          // Randomly decide type based on preference
-          let isStudent = false;
-          if (userWantsEducation) isStudent = Math.random() > 0.3; // 70% chance if selected
-          else isStudent = Math.random() > 0.7; // 30% chance if not selected for education (random act)
-
           let impact = null;
-
+          const isStudent = Math.random() > 0.5;
           if (isStudent) {
             const name = this.studentNames[Math.floor(Math.random() * this.studentNames.length)];
             const dept = this.depts[Math.floor(Math.random() * this.depts.length)];
-            impact = {
-              type: 'student',
-              name: name,
-              detail: dept + ' Fakültesi',
-              action: 'Kitap Bağışı',
-              icon: '🎓',
-              bgClass: 'bg-blue-100 text-blue-600'
-            };
+            impact = { name: name, detail: dept, icon: '🎓', bgClass: 'bg-blue-100 text-blue-600' };
           } else {
-            impact = {
-              type: 'nature',
-              name: 'Ege Ormanı',
-              detail: 'Ağaçlandırma Sahası',
-              action: '1 Fidan Dikildi',
-              icon: '🌱',
-              bgClass: 'bg-green-100 text-green-600'
-            };
+            impact = { name: 'Ege Ormanı', detail: 'Fidan Dikildi', icon: '🌱', bgClass: 'bg-green-100 text-green-600' };
           }
-
           this.recentImpacts.unshift(impact);
           if (this.recentImpacts.length > 5) this.recentImpacts.pop();
-          this.showNotification('Yeni bir etki yarattınız! 🌟');
+          this.showNotification(`Yeni Etki: ${impact.name}`);
         },
 
         toggleIntent(id) {
@@ -527,16 +543,10 @@
             this.mainBalance -= this.selectedAmount;
             this.etkiBalance = this.selectedAmount;
             this.hasEtkiAccount = true;
-            this.etkiDays = 1;
-            this.etkiPoints = 10;
-            this.treeLevel = 1;
             this.screen = 'dashboard';
-
             this.fireConfetti();
             this.showNotification('Etki Hesabınız Açıldı!');
-
-            // Immediate impact
-            setTimeout(() => this.generateRandomImpact(), 1000);
+            setTimeout(() => this.generateRandomImpact(), 1500);
           }
         },
 
@@ -545,10 +555,19 @@
             this.mainBalance -= amt;
             this.etkiBalance += amt;
             this.showAddMoneyModal = false;
-            this.showNotification(amt + ' TL Eklendi');
+            this.showNotification(`${amt} TL Eklendi`);
             this.fireConfetti();
-            this.generateRandomImpact();
           }
+        },
+
+        withdrawMoney() {
+          this.mainBalance += this.etkiBalance;
+          this.etkiBalance = 0;
+          this.earnedInterest = 0;
+          this.hasEtkiAccount = false;
+          this.showAddMoneyModal = false;
+          this.screen = 'home';
+          this.showNotification('Hesap Kapatıldı, Para İade Edildi');
         },
 
         fireConfetti() {
